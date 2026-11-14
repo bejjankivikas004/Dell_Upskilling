@@ -1,0 +1,473 @@
+
+/* =========================================================
+   PROBLEM 1: CLASSES AND OBJECTS
+   ========================================================= */
+
+class Book(val title: String, val author: String, val price: Double) {
+
+  def displayDetails(): Unit = {
+    println(s"Book Name : $title")
+    println(s"Author    : $author")
+    println(s"Price     : $price")
+    println("----------------------")
+  }
+}
+
+object BookDemo {
+  def main(args: Array[String]): Unit = {
+
+    val book1 = new Book("Wings of Fire", "A.P.J. Abdul Kalam", 350.0)
+    val book2 = new Book("The Alchemist", "Paulo Coelho", 400.0)
+
+    book1.displayDetails()
+    book2.displayDetails()
+  }
+}
+
+/*
+OUTPUT:
+
+Book Name : Wings of Fire
+Author    : A.P.J. Abdul Kalam
+Price     : 350.0
+----------------------
+Book Name : The Alchemist
+Author    : Paulo Coelho
+Price     : 400.0
+----------------------
+
+Explanation:
+A class is a blueprint used to create objects.
+An object is an instance of a class that contains actual values.
+*/
+
+
+/* =========================================================
+   PROBLEM 2: IMPLICIT CLASSES
+   ========================================================= */
+
+object ImplicitDemo {
+
+  implicit class RichInt(val number: Int) {
+    def square(): Int = {
+      number * number
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+
+    println("Square of 4: " + 4.square())
+    println("Square of 7: " + 7.square())
+  }
+}
+
+/*
+OUTPUT:
+
+Square of 4: 16
+Square of 7: 49
+
+Explanation:
+An implicit class adds an extra method to an existing type.
+Here, RichInt adds the square() method to Int values.
+The compiler makes the method available through an implicit
+conversion when the class is in scope.
+*/
+
+
+/* =========================================================
+   PROBLEM 3: PRIMARY AND AUXILIARY CONSTRUCTORS
+   ========================================================= */
+
+class Student(val name: String, val age: Int) {
+
+  // Auxiliary constructor with name only
+  def this(name: String) = {
+    this(name, 18)
+  }
+
+  // Auxiliary constructor with no arguments
+  def this() = {
+    this("Unknown", 18)
+  }
+
+  def displayDetails(): Unit = {
+    println(s"Name: $name, Age: $age")
+  }
+}
+
+object StudentDemo {
+  def main(args: Array[String]): Unit = {
+
+    val student1 = new Student("Vikas", 22)
+    val student2 = new Student("Rahul")
+    val student3 = new Student()
+
+    student1.displayDetails()
+    student2.displayDetails()
+    student3.displayDetails()
+  }
+}
+
+/*
+OUTPUT:
+
+Name: Vikas, Age: 22
+Name: Rahul, Age: 18
+Name: Unknown, Age: 18
+
+Explanation:
+The primary constructor is defined in the class declaration.
+Auxiliary constructors are additional constructors defined
+using this. Every auxiliary constructor must call the primary
+constructor or another auxiliary constructor as its first statement.
+*/
+
+
+/* =========================================================
+   PROBLEM 4: INHERITANCE AND POLYMORPHISM
+   ========================================================= */
+
+class Employee(val name: String, val salary: Double) {
+
+  def displayDetails(): Unit = {
+    println(s"Name: $name, Salary: $salary")
+  }
+
+  def workDescription(): Unit = {
+    println("Employee is doing general work")
+  }
+}
+
+class Manager(name: String, salary: Double, val teamSize: Int)
+  extends Employee(name, salary) {
+
+  override def workDescription(): Unit = {
+    println(s"$name manages a team of $teamSize members")
+  }
+}
+
+class Developer(name: String, salary: Double, val language: String)
+  extends Employee(name, salary) {
+
+  override def workDescription(): Unit = {
+    println(s"$name develops applications using $language")
+  }
+}
+
+object EmployeeDemo {
+  def main(args: Array[String]): Unit = {
+
+    val manager = new Manager("Ravi", 80000, 5)
+    val developer = new Developer("Kiran", 60000, "Scala")
+
+    val employees: Array[Employee] = Array(manager, developer)
+
+    for (emp <- employees) {
+      emp.displayDetails()
+      emp.workDescription()
+      println("----------------------")
+    }
+  }
+}
+
+/*
+OUTPUT:
+
+Name: Ravi, Salary: 80000.0
+Ravi manages a team of 5 members
+----------------------
+Name: Kiran, Salary: 60000.0
+Kiran develops applications using Scala
+----------------------
+
+Explanation:
+Inheritance allows a child class to use the properties and
+methods of a parent class. Polymorphism allows the overridden
+method to execute according to the actual object at runtime.
+*/
+
+
+/* =========================================================
+   PROBLEM 5: SINGLETON AND COMPANION OBJECTS
+   ========================================================= */
+
+class Employee private (val name: String, val salary: Double) {
+
+  def displayDetails(): Unit = {
+    println(s"Employee Name: $name")
+    println(s"Employee Salary: $salary")
+  }
+}
+
+object Employee {
+
+  def create(name: String, salary: Double): Employee = {
+
+    require(name.trim.nonEmpty, "Employee name cannot be empty")
+    require(salary > 0, "Salary must be positive")
+
+    new Employee(name, salary)
+  }
+}
+
+object ApplicationConfig {
+
+  val applicationName = "Employee Management System"
+
+  def displayConfig(): Unit = {
+    println(s"Application Name: $applicationName")
+  }
+}
+
+object EmployeeApplication {
+  def main(args: Array[String]): Unit = {
+
+    val emp = Employee.create("Vikas", 50000)
+
+    emp.displayDetails()
+
+    ApplicationConfig.displayConfig()
+  }
+}
+
+/*
+OUTPUT:
+
+Employee Name: Vikas
+Employee Salary: 50000.0
+Application Name: Employee Management System
+
+Explanation:
+A normal class is used to create objects.
+A companion object has the same name as its class and can
+access its private members.
+A singleton object has only one instance and is commonly
+used for shared methods and configuration.
+*/
+
+
+/* =========================================================
+   PROBLEM 6: OBJECT EQUALITY - ==, eq, equals AND hashCode
+   ========================================================= */
+
+class Point(val x: Int, val y: Int) {
+
+  override def equals(other: Any): Boolean = {
+    other match {
+      case that: Point =>
+        this.x == that.x && this.y == that.y
+      case _ => false
+    }
+  }
+
+  override def hashCode(): Int = {
+    31 * x + y
+  }
+
+  override def toString: String = {
+    s"Point($x, $y)"
+  }
+}
+
+case class PointValue(x: Int, y: Int)
+
+object PointDemo {
+  def main(args: Array[String]): Unit = {
+
+    val p1 = new Point(10, 20)
+    val p2 = new Point(10, 20)
+
+    println("Using == : " + (p1 == p2))
+    println("Using eq : " + (p1 eq p2))
+
+    val points = Set(p1, p2)
+
+    println("Set size: " + points.size)
+
+    val pv1 = PointValue(5, 10)
+    val pv2 = PointValue(5, 10)
+
+    println("Case class equality: " + (pv1 == pv2))
+  }
+}
+
+/*
+OUTPUT:
+
+Using == : true
+Using eq : false
+Set size: 1
+Case class equality: true
+
+Explanation:
+== checks value equality by using equals().
+eq checks whether two references point to the same object.
+hashCode() returns the hash code of an object. Equal objects
+must have the same hash code, which is important when using
+collections such as Set.
+Case classes automatically provide value-based equality.
+*/
+
+
+/* =========================================================
+   PROBLEM 7: VAL AND VAR MEMBERS, GETTERS AND SETTERS
+   ========================================================= */
+
+class Temperature(initialValue: Double) {
+
+  private var _c: Double = initialValue
+
+  // Getter
+  def celsius: Double = {
+    _c
+  }
+
+  // Setter
+  def celsius_=(value: Double): Unit = {
+
+    require(value >= -273.15, "Temperature cannot be below absolute zero")
+
+    _c = value
+  }
+}
+
+object TemperatureDemo {
+  def main(args: Array[String]): Unit = {
+
+    val temp = new Temperature(25.0)
+
+    println("Initial Temperature: " + temp.celsius)
+
+    temp.celsius = 35.5
+
+    println("Updated Temperature: " + temp.celsius)
+  }
+}
+
+/*
+OUTPUT:
+
+Initial Temperature: 25.0
+Updated Temperature: 35.5
+
+Explanation:
+The internal variable _c is private so that it cannot be
+accessed directly from outside the class.
+The getter is used to read the temperature.
+The setter is used to update the temperature with validation.
+*/
+
+
+/* =========================================================
+   OPTIONAL MINI PROJECT: EMPLOYEE MANAGEMENT
+   ========================================================= */
+
+class CompanyEmployee private (
+  val name: String,
+  val employeeId: Int,
+  private var _salary: Double
+) {
+
+  def salary: Double = _salary
+
+  def salary_=(value: Double): Unit = {
+    require(value > 0, "Salary must be positive")
+    _salary = value
+  }
+
+  def displayDetails(): Unit = {
+    println(s"ID: $employeeId, Name: $name, Salary: $_salary")
+  }
+
+  override def equals(other: Any): Boolean = {
+    other match {
+      case emp: CompanyEmployee => employeeId == emp.employeeId
+      case _ => false
+    }
+  }
+
+  override def hashCode(): Int = employeeId.hashCode
+}
+
+object CompanyEmployee {
+
+  def create(name: String, id: Int, salary: Double): CompanyEmployee = {
+    require(name.trim.nonEmpty, "Name cannot be empty")
+    require(id > 0, "Employee ID must be positive")
+    require(salary > 0, "Salary must be positive")
+
+    new CompanyEmployee(name, id, salary)
+  }
+}
+
+class ManagerEmployee(
+  name: String,
+  id: Int,
+  salary: Double,
+  val teamSize: Int
+) extends CompanyEmployee(name, id, salary) {
+
+  def showRole(): Unit = {
+    println(s"$name is a Manager with a team of $teamSize members")
+  }
+}
+
+class DeveloperEmployee(
+  name: String,
+  id: Int,
+  salary: Double,
+  val language: String
+) extends CompanyEmployee(name, id, salary) {
+
+  def showRole(): Unit = {
+    println(s"$name is a Developer using $language")
+  }
+}
+
+object EmployeeManagement {
+  def main(args: Array[String]): Unit = {
+
+    val manager = new ManagerEmployee("Ravi", 101, 80000, 5)
+    val developer = new DeveloperEmployee("Kiran", 102, 60000, "Scala")
+
+    val employee1 = CompanyEmployee.create("Vikas", 103, 50000)
+    val employee2 = CompanyEmployee.create("Vikas", 103, 50000)
+
+    val employees = List(manager, developer, employee1)
+
+    println("Employee Details")
+
+    employees.foreach(_.displayDetails())
+
+    println("\nEmployee Roles")
+    manager.showRole()
+    developer.showRole()
+
+    println("\nUpdating Employee Salary")
+    employee1.salary = 55000
+    employee1.displayDetails()
+
+    val employeeSet = Set(employee1, employee2)
+
+    println("\nUnique Employee Records: " + employeeSet.size)
+  }
+}
+
+/*
+OUTPUT:
+
+Employee Details
+ID: 101, Name: Ravi, Salary: 80000.0
+ID: 102, Name: Kiran, Salary: 60000.0
+ID: 103, Name: Vikas, Salary: 50000.0
+
+Employee Roles
+Ravi is a Manager with a team of 5 members
+Kiran is a Developer using Scala
+
+Updating Employee Salary
+ID: 103, Name: Vikas, Salary: 55000.0
+
+Unique Employee Records: 1
+*/

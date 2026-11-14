@@ -1,0 +1,473 @@
+
+/* =========================================================
+   ASSIGNMENT 1: CANDIDATE ASSESSMENT SCORE PROCESSOR
+   ========================================================= */
+
+case class Candidate(
+  name: String,
+  score: Option[Int]
+)
+
+object CandidateAssessment {
+  def main(args: Array[String]): Unit = {
+
+    val candidates = List(
+      Candidate("John", Some(85)),
+      Candidate("David", Some(45)),
+      Candidate("Smith", None),
+      Candidate("Peter", Some(75)),
+      Candidate("Alex", None)
+    )
+
+    val passed = candidates.filter {
+      case Candidate(_, Some(score)) => score >= 60
+      case _ => false
+    }
+
+    val failed = candidates.filter {
+      case Candidate(_, Some(score)) => score < 60
+      case _ => false
+    }
+
+    val pending = candidates.filter {
+      case Candidate(_, None) => true
+      case _ => false
+    }
+
+    val scores = candidates.flatMap {
+      case Candidate(_, Some(score)) => Some(score)
+      case Candidate(_, None) => None
+    }
+
+    val average = scores.map(_.toDouble).sum / scores.size
+
+    println("Passed candidates: " + passed.map(_.name).mkString(", "))
+    println("Failed candidates: " + failed.map(_.name).mkString(", "))
+    println("Pending candidates: " + pending.map(_.name).mkString(", "))
+    println(f"Average score: $average%.2f")
+  }
+}
+
+/*
+OUTPUT:
+
+Passed candidates: John, Peter
+Failed candidates: David
+Pending candidates: Smith, Alex
+Average score: 68.33
+*/
+
+
+/* =========================================================
+   ASSIGNMENT 2: EMPLOYEE SALARY VALIDATION
+   ========================================================= */
+
+case class Employee(
+  id: Int,
+  name: String,
+  department: String,
+  salary: Option[Double]
+)
+
+object EmployeeSalaryValidation {
+
+  def validateSalary(salary: Option[Double]): Either[String, Double] = {
+    salary match {
+      case Some(value) if value > 0 => Right(value)
+      case Some(_) => Left("Invalid salary")
+      case None => Left("Salary is missing")
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+
+    val employees = List(
+      Employee(101, "John", "IT", Some(50000)),
+      Employee(102, "David", "HR", Some(30000)),
+      Employee(103, "Smith", "IT", None),
+      Employee(104, "Peter", "Finance", Some(-1000)),
+      Employee(105, "Alex", "IT", Some(70000))
+    )
+
+    val results = employees.map(emp =>
+      (emp, validateSalary(emp.salary))
+    )
+
+    val validEmployees = results.collect {
+      case (emp, Right(salary)) => emp
+    }
+
+    val invalidEmployees = results.collect {
+      case (emp, Left(error)) => emp
+    }
+
+    val validITEmployees = results.collect {
+      case (emp, Right(salary)) if emp.department == "IT" =>
+        (emp.name, salary)
+    }
+
+    val averageSalary =
+      validITEmployees.map(_._2).sum / validITEmployees.size
+
+    println("Valid employees: " +
+      validEmployees.map(_.name).mkString(", "))
+
+    println("Invalid employees: " +
+      invalidEmployees.map(_.name).mkString(", "))
+
+    println("Valid IT employees: " +
+      validITEmployees.map(_._1).mkString(", "))
+
+    println("Average IT salary: " + averageSalary.toInt)
+  }
+}
+
+/*
+OUTPUT:
+
+Valid employees: John, David, Alex
+Invalid employees: Smith, Peter
+Valid IT employees: John, Alex
+Average IT salary: 60000
+*/
+
+
+/* =========================================================
+   ASSIGNMENT 3: E-COMMERCE ORDER PROCESSING
+   ========================================================= */
+
+case class Order(
+  orderId: Int,
+  customerName: String,
+  amount: Option[Double],
+  status: String
+)
+
+object OrderProcessing {
+
+  def validateAmount(amount: Option[Double]): Either[String, Double] = {
+    amount match {
+      case Some(value) if value > 0 => Right(value)
+      case Some(_) => Left("Order amount must be greater than zero")
+      case None => Left("Order amount is missing")
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+
+    val orders = List(
+      Order(1, "John", Some(2500), "COMPLETED"),
+      Order(2, "David", Some(1500), "PENDING"),
+      Order(3, "Smith", None, "COMPLETED"),
+      Order(4, "Peter", Some(-500), "FAILED"),
+      Order(5, "Alex", Some(4000), "COMPLETED")
+    )
+
+    val results = orders.map(order =>
+      (order, validateAmount(order.amount))
+    )
+
+    val completedOrders = results.collect {
+      case (order, Right(amount)) if order.status == "COMPLETED" =>
+        order.orderId
+    }
+
+    val pendingOrders = orders.collect {
+      case Order(id, _, _, "PENDING") => id
+    }
+
+    val invalidOrders = results.collect {
+      case (order, Left(error)) => order.orderId
+    }
+
+    val totalAmount = results.collect {
+      case (order, Right(amount)) if order.status == "COMPLETED" =>
+        amount
+    }.sum
+
+    val validOrders = results.collect {
+      case (order, Right(amount)) => (order.orderId, amount)
+    }
+
+    println("Completed valid orders: " + completedOrders.mkString(", "))
+    println("Pending orders: " + pendingOrders.mkString(", "))
+    println("Invalid orders: " + invalidOrders.mkString(", "))
+    println("Total completed order amount: " + totalAmount.toInt)
+
+    println("\nValid Orders:")
+    validOrders.foreach {
+      case (id, amount) =>
+        println(s"Order ID: $id, Amount: $amount")
+    }
+  }
+}
+
+/*
+OUTPUT:
+
+Completed valid orders: 1, 5
+Pending orders: 2
+Invalid orders: 3, 4
+Total completed order amount: 6500
+
+Valid Orders:
+Order ID: 1, Amount: 2500.0
+Order ID: 2, Amount: 1500.0
+Order ID: 5, Amount: 4000.0
+*/
+
+
+/* =========================================================
+   ASSIGNMENT 4: STUDENT GRADE MANAGEMENT SYSTEM
+   ========================================================= */
+
+case class Subject(
+  name: String,
+  marks: Option[Int]
+)
+
+case class Student(
+  id: Int,
+  name: String,
+  subjects: List[Subject]
+)
+
+object StudentGradeManagement {
+
+  def validateStudent(student: Student): Either[String, Int] = {
+
+    val marks = student.subjects.map {
+      case Subject(_, Some(mark)) if mark >= 0 && mark <= 100 =>
+        Right(mark)
+
+      case Subject(name, None) =>
+        Left(s"Marks missing in $name")
+
+      case Subject(name, Some(_)) =>
+        Left(s"Invalid marks in $name")
+    }
+
+    marks.collectFirst {
+      case Left(error) => error
+    } match {
+      case Some(error) => Left(error)
+
+      case None =>
+        Right(marks.collect {
+          case Right(mark) => mark
+        }.sum)
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+
+    val students = List(
+      Student(1, "Anu", List(
+        Subject("Maths", Some(90)),
+        Subject("Science", Some(85)),
+        Subject("English", Some(80))
+      )),
+
+      Student(2, "Ravi", List(
+        Subject("Maths", Some(60)),
+        Subject("Science", Some(70)),
+        Subject("English", Some(65))
+      )),
+
+      Student(3, "Kiran", List(
+        Subject("Maths", Some(80)),
+        Subject("Science", None),
+        Subject("English", Some(75))
+      )),
+
+      Student(4, "Meena", List(
+        Subject("Maths", Some(30)),
+        Subject("Science", Some(40)),
+        Subject("English", Some(45))
+      ))
+    )
+
+    println("Student-wise Total Marks")
+
+    students.foreach {
+      case Student(id, name, subjects) =>
+        val total = subjects.flatMap {
+          case Subject(_, Some(mark)) => Some(mark)
+          case Subject(_, None) => None
+        }.sum
+
+        println(s"$name: $total")
+    }
+
+    val results = students.map(student =>
+      (student, validateStudent(student))
+    )
+
+    val incompleteStudents = results.collect {
+      case (student, Left(error)) => student.name
+    }
+
+    val completeStudents = results.collect {
+      case (student, Right(total)) => (student, total)
+    }
+
+    val passedStudents = completeStudents.filter {
+      case (student, total) =>
+        student.subjects.forall {
+          case Subject(_, Some(mark)) => mark >= 35
+          case Subject(_, None) => false
+        }
+    }
+
+    val distinctionStudents = completeStudents.filter {
+      case (student, total) =>
+        val average = total.toDouble / student.subjects.size
+        average >= 75
+    }
+
+    println("\nStudents who passed:")
+    passedStudents.foreach {
+      case (student, total) =>
+        println(student.name)
+    }
+
+    println("\nStudents with incomplete assessments:")
+    println(incompleteStudents.mkString(", "))
+
+    println("\nStudents with distinction (75% or above):")
+    distinctionStudents.foreach {
+      case (student, total) =>
+        println(student.name)
+    }
+  }
+}
+
+/*
+OUTPUT:
+
+Student-wise Total Marks
+Anu: 255
+Ravi: 195
+Kiran: 155
+Meena: 115
+
+Students who passed:
+Anu
+Ravi
+
+Students with incomplete assessments:
+Kiran
+
+Students with distinction (75% or above):
+Anu
+*/
+
+
+/* =========================================================
+   ASSIGNMENT 5: DATA PIPELINE VALIDATION USING EITHER
+   ========================================================= */
+
+case class Customer(
+  id: Option[Int],
+  name: Option[String],
+  age: Option[Int],
+  email: Option[String]
+)
+
+object CustomerDataValidation {
+
+  def validateCustomer(customer: Customer): Either[String, Customer] = {
+
+    for {
+      id <- customer.id.toRight("Customer ID is missing")
+      _ <- if (id > 0) Right(())
+           else Left("Customer ID must be positive")
+
+      name <- customer.name.toRight("Customer name is missing")
+      _ <- if (name.trim.nonEmpty) Right(())
+           else Left("Customer name must not be empty")
+
+      age <- customer.age.toRight("Customer age is missing")
+      _ <- if (age >= 18 && age <= 100) Right(())
+           else Left("Customer age must be between 18 and 100")
+
+      email <- customer.email.toRight("Customer email is missing")
+      _ <- if (email.contains("@")) Right(())
+           else Left("Invalid email address")
+
+    } yield customer
+  }
+
+  def main(args: Array[String]): Unit = {
+
+    val customers = List(
+      Customer(Some(101), Some("John"), Some(25), Some("john@gmail.com")),
+      Customer(Some(102), Some(""), Some(30), Some("david@gmail.com")),
+      Customer(Some(103), Some("Smith"), Some(17), Some("smith@gmail.com")),
+      Customer(Some(104), Some("Peter"), Some(28), Some("peter.gmail.com")),
+      Customer(None, Some("Alex"), Some(35), Some("alex@gmail.com")),
+      Customer(Some(106), Some("David"), Some(40), Some("david@gmail.com"))
+    )
+
+    val results = customers.map(customer =>
+      (customer, validateCustomer(customer))
+    )
+
+    val validCustomers = results.collect {
+      case (_, Right(customer)) => customer
+    }
+
+    val rejectedCustomers = results.collect {
+      case (original, Left(error)) => (original, error)
+    }
+
+    println("Total records received: " + customers.size)
+    println("Valid customer count: " + validCustomers.size)
+    println("Rejected customer count: " + rejectedCustomers.size)
+
+    println("\nValid Customer Details:")
+
+    validCustomers.foreach {
+      case Customer(Some(id), Some(name), Some(age), Some(email)) =>
+        println(s"ID: $id, Name: $name, Age: $age, Email: $email")
+
+      case _ =>
+        println("Invalid customer details")
+    }
+
+    println("\nRejected Records:")
+
+    rejectedCustomers.foreach {
+      case (customer, error) =>
+        println(s"Customer: ${customer.name.getOrElse("Unknown")}")
+        println(s"Reason: $error")
+        println("----------------------")
+    }
+  }
+}
+
+/*
+OUTPUT:
+
+Total records received: 6
+Valid customer count: 2
+Rejected customer count: 4
+
+Valid Customer Details:
+ID: 101, Name: John, Age: 25, Email: john@gmail.com
+ID: 106, Name: David, Age: 40, Email: david@gmail.com
+
+Rejected Records:
+Customer:
+Reason: Customer name must not be empty
+----------------------
+Customer: Smith
+Reason: Customer age must be between 18 and 100
+----------------------
+Customer: Peter
+Reason: Invalid email address
+----------------------
+Customer: Alex
+Reason: Customer ID is missing
+----------------------
+*/
